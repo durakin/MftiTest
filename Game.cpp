@@ -31,7 +31,6 @@
 std::vector<EnemyRectangular> enemies;
 std::vector<FriendlyCircle> friendlies;
 
-
 void move_player(float t, float& x1, float& y1, float& x2, float& y2) {
     x1 = PLAYZONE_RADIUS * std::cos(t) + SCREEN_WIDTH / 2;
     y1 = PLAYZONE_RADIUS * std::sin(t) + SCREEN_HEIGHT/ 2;
@@ -92,21 +91,21 @@ void spawn_random_enemy(uint32_t color) {
 
     enemy.active = true;
     enemies.push_back(enemy);
-    enemy_cooldown = ENEMY_CD;
+    enemy_cooldown = ENEMY_COOLDOWN;
 }
 
 void spawn_random_friend(uint32_t color) {
     FriendlyCircle friendly;
     friendly.color = color;
-
     friendly.x = SPAWN_X;
+
     set_random_spawnpoint(friendly.y);
     set_random_friendly_radius(friendly.radius);
     set_random_speed_vector(friendly.x, friendly.y, friendly.speed_x, friendly.speed_y);
 
     friendly.active = true;
     friendlies.push_back(friendly);
-    friendly_cooldown = FRIENDLY_CD;
+    friendly_cooldown = FRIENDLY_COOLDOWN;
 }
 
 // initialize game data in this function
@@ -202,6 +201,7 @@ void act(float dt)
         friendly.draw();
 
         draw_number(score, 600, 120, 4, 2, WHITE_COLOR);
+        draw_hp(hp, 700, 120, 4, 2, WHITE_COLOR, WHITE_COLOR);
 
         if (score >= 1000)
         {
