@@ -3,6 +3,6 @@
 class CollidableObject
 {
 public:
-    virtual bool collidesPlayer() = 0;
+    virtual bool collides_player() = 0;
     virtual bool out_of_playzone() = 0;
 };

@@ -10,7 +10,7 @@ void EnemyRectangular::draw() {
     }
 }
 
-bool EnemyRectangular::collidesPlayer()
+bool EnemyRectangular::collides_player()
 {
     float x1 = x + side_x / 2;
     float y1 = y + side_y / 2;

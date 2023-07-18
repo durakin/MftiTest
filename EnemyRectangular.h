@@ -14,6 +14,6 @@ public:
     float side_y;
     uint32_t color;
     void draw() override;
-    bool collidesPlayer() override;
+    bool collides_player() override;
     bool out_of_playzone() override;
 };

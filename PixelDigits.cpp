@@ -1,15 +1,16 @@
 #include <cstdint>
 
 #include "PixelDigits.h"
+#include "DisplayUtils.h"
 #include "Engine.h"
 
 char heart[36] = {
  "....."
  "##.##"
  "#####"
+ "#####"
  ".###."
  "..#.."
- "....."
  "....."
 };
 
@@ -100,7 +101,7 @@ void draw_pixel(int y0, int x0, int pixel_size, uint32_t color)
 	for (int i = 0; i < pixel_size; i++)
 	{
 		for (int j = 0; j < pixel_size; j++) {
-			buffer[y0 + i][x0 + j] = color;
+			set_color(x0 + j, y0 + i, color);
 		}
 	}
 }
@@ -118,7 +119,6 @@ void draw_symbol(int x0, int y0, int pixel_size, int width, char symbol[29], uin
 		}
 	}
 }
-
 
 void draw_number(int number, int x0, int y0, int pixel_size, int space_size, uint32_t color)
 {

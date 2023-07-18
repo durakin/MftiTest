@@ -163,7 +163,7 @@ void act(float dt)
             enemy.active = false;
             enemy_pool++;
         }
-        if (enemy.collidesPlayer())
+        if (enemy.collides_player())
         {
             hp--;
             enemy.active = false;
@@ -174,7 +174,7 @@ void act(float dt)
 
     if (enemy_pool >= 1 && enemy_cooldown <= 0)
     {
-        spawn_random_enemy(14888841);
+        spawn_random_enemy(ENEMY_COLOR);
         enemy_pool--;
     }
 
@@ -187,7 +187,7 @@ void act(float dt)
             friendly_pool++;
         }
 
-        if (friendly.collidesPlayer())
+        if (friendly.collides_player())
         {
             friendly.active = false;
             score++;
@@ -200,8 +200,8 @@ void act(float dt)
         
         friendly.draw();
 
-        draw_number(score, 600, 120, 4, 2, WHITE_COLOR);
-        draw_hp(hp, 700, 120, 4, 2, WHITE_COLOR, WHITE_COLOR);
+        draw_number(score, SCORE_POSITION_X, SCORE_POSITION_Y, PIXEL_SIZE, SPACE_SIZE, WHITE_COLOR);
+        draw_hp(hp, HP_POSITION_X, HP_POSITION_Y, PIXEL_SIZE, SPACE_SIZE, WHITE_COLOR, HP_COLOR);
 
         if (score >= 1000)
         {
@@ -212,7 +212,7 @@ void act(float dt)
 
     if (friendly_pool >= 1 && friendly_cooldown <= 0)
     {
-        spawn_random_friend(84888841);
+        spawn_random_friend(FRIENDLY_COLOR);
         friendly_pool--;
     }
 
@@ -226,6 +226,10 @@ void act(float dt)
     if (is_key_pressed(VK_RIGHT))
     {
         player.direction = -1;
+    }
+    if (is_key_pressed(VK_SPACE))
+    {
+        player.direction *= -1;
     }
 
     if (hp <= 0)
