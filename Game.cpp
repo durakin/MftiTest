@@ -22,15 +22,16 @@ public:
     float speed_y;
     float x;
     float y;
-    int side_x;
-    int side_y;
+    float side_x;
+    float side_y;
     uint32_t color;
+    bool deactivated;
 };
 
 struct Player_circle 
 {
-    int x;
-    int y;
+    float x;
+    float y;
 };
 
 struct Player
@@ -122,7 +123,7 @@ void move_enemy(float t, MovingRectangular* enemy)
     draw_sqare(enemy->x, enemy->y, enemy->side_x, enemy->side_y, enemy->color);
 }
 
-void move_player(float t, int& x1, int& y1, int& x2, int& y2) {
+void move_player(float t, float& x1, float& y1, float& x2, float& y2) {
     x1 = PLAYZONE_RADIUS * std::cos(t) + SCREEN_WIDTH / 2;
     y1 = PLAYZONE_RADIUS * std::sin(t) + SCREEN_HEIGHT/ 2;
     draw_circle(x1, y1, PLAYER_RADIUS, WHITE_COLOR);
@@ -145,6 +146,7 @@ void spawn_random_enemy(uint32_t color, int x, int y) {
     enemy.side_y = 15;
     enemy.speed_x = 100;
     enemy.speed_y = 100;
+    enemy.deactivated = false;
     enemies.push_back(enemy);
 }
 
@@ -166,8 +168,8 @@ void initialize()
     player.second = second;
     player.offset = 0;
     player.direction = 1;
-    int box_size = 5;
     spawn_random_enemy(1488, 100, 100);
+    spawn_random_enemy(14888841, 150, 150);
     spawn_random_enemy(14888841, 350, 350);
 }
 
@@ -193,14 +195,16 @@ void act(float dt)
 
     for (MovingRectangular& enemy: enemies) {
         move_enemy(dt, &enemy);
-    }
-
-    for (MovingRectangular& enemy : enemies) {
         if (is_enemy_collided(enemy))
         {
-            enemy.color = WHITE_COLOR;
+            enemy.deactivated = true;
         }
     }
+    
+    enemies.erase(std::remove_if(enemies.begin(), enemies.end(), [](const MovingRectangular& elem) {
+        return elem.deactivated == true;
+        }), enemies.end());
+
 
     if (is_key_pressed(VK_LEFT)) 
     {
