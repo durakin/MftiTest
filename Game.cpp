@@ -14,35 +14,37 @@
 #define M_PI 3.14159265358979323846 
 #define PLAYER_SPEED 2
 
-class MovingObject
+
+
+class MovingRectangular
 {
 public:
-    MovingObject();
-    ~MovingObject();
     float speed_x;
     float speed_y;
     float x;
     float y;
     int side_x;
     int side_y;
-    float color;
-private:
-
+    uint32_t color;
 };
 
-class RectngularEnemy : MovingObject 
+struct Player_circle 
 {
-
+    int x;
+    int y;
 };
 
-MovingObject::MovingObject()
+struct Player
 {
-}
+    Player_circle first;
+    Player_circle second;
+    float offset;
+    int direction;
+};
 
-MovingObject::~MovingObject()
-{
-}
+std::vector<MovingRectangular> enemies;
 
+Player player;
 
 //  is_key_pressed(int button_vk_code) - check if a key is pressed,
 //                                       use keycodes (VK_SPACE, VK_RIGHT, VK_LEFT, VK_UP, VK_DOWN, 'A', 'B')
@@ -83,7 +85,13 @@ void draw_sqare(int center_x, int center_y, int side_x, int side_y, uint32_t col
     }
 }
 
-void move_enemy(float t, MovingObject* enemy)
+bool is_collision(MovingRectangular* object)
+{
+    
+    return false;
+}
+
+void move_enemy(float t, MovingRectangular* enemy)
 {
     enemy->x += (t * enemy->speed_x);
     enemy->y += (t * enemy->speed_y);
@@ -103,18 +111,11 @@ void draw_playzone() {
     draw_circle(SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2, PLAYZONE_RADIUS, PLAYZONE_COLOR);
 }
 
-int player_x1 = SCREEN_WIDTH / 2 - PLAYZONE_RADIUS;
-int player_x2 = SCREEN_WIDTH / 2 + PLAYZONE_RADIUS;
-int player_y1 = SCREEN_HEIGHT / 2 - PLAYZONE_RADIUS;
-int player_y2 = SCREEN_HEIGHT / 2 + PLAYZONE_RADIUS;
-float player_offset = 0;
-int direction = 1;
 
-std::vector<MovingObject> enemies;
 
 
 void spawn_random_enemy(uint32_t color, int x, int y) {
-    MovingObject enemy;
+    MovingRectangular enemy;
     enemy.x = x;
     enemy.y = y;
     enemy.color = color;
@@ -129,6 +130,20 @@ void spawn_random_enemy(uint32_t color, int x, int y) {
 // initialize game data in this function
 void initialize()
 {
+    int player_x1 = SCREEN_WIDTH / 2 - PLAYZONE_RADIUS;
+    int player_x2 = SCREEN_WIDTH / 2 + PLAYZONE_RADIUS;
+    int player_y1 = SCREEN_HEIGHT / 2 - PLAYZONE_RADIUS;
+    int player_y2 = SCREEN_HEIGHT / 2 + PLAYZONE_RADIUS;
+    Player_circle first;
+    first.x = player_x1;
+    first.y = player_y1;
+    Player_circle second;
+    second.x = player_x2;
+    second.y = player_y2;
+    player.first = first;
+    player.second = second;
+    player.offset = 0;
+    player.direction = 1;
     int box_size = 5;
     spawn_random_enemy(1488, 100, 100);
     spawn_random_enemy(14888841, 350, 350);
@@ -147,24 +162,24 @@ void act(float dt)
         schedule_quit_game();
     }
 
-    player_offset += (dt * PLAYER_SPEED) * direction;
-    if (player_offset >= 2 * M_PI)
+    player.offset += (dt * PLAYER_SPEED) * player.direction;
+    if (player.offset >= 2 * M_PI)
     {
-        player_offset -= 2 * M_PI;
+        player.offset -= 2 * M_PI;
     }
-    move_player(player_offset, player_x1, player_y1, player_x2, player_y2);
+    move_player(player.offset, player.first.x, player.first.y, player.second.x, player.second.y);
 
-    for (MovingObject& enemy: enemies) {
+    for (MovingRectangular& enemy: enemies) {
         move_enemy(dt, &enemy);
     }
 
     if (is_key_pressed(VK_LEFT)) 
     {
-        direction = 1;
+        player.direction = 1;
     }
     if (is_key_pressed(VK_RIGHT))
     {
-        direction = -1;
+        player.direction = -1;
     }
 }
 
