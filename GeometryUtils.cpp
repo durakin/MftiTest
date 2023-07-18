@@ -4,6 +4,7 @@
 #include "GeometryUtils.h"
 #include "Engine.h"
 #include "DisplayUtils.h"
+#include "Constants.h"
 
 #define SCREEN_DIAG 1280
 
@@ -96,28 +97,4 @@ void draw_sqare(float center_x, float center_y, float side_x, float side_y, uint
             set_color(x, y, color);
         }
     }
-}
-
-void findTangents(float c_x,float x_y, float c_r, float p_x, float p_y) {
-    /*double dx = p_x - circle.center.x;
-    double dy = p_y - circle.center.y;
-    double d = sqrt(dx * dx + dy * dy);
-    double theta = atan2(dy, dx);
-    double alpha = asin(circle.radius / d);
-
-    double commonTangent1 = theta + alpha;
-    double commonTangent2 = theta - alpha;
-    double directTangent1 = theta + (PI / 2) + alpha;
-    double directTangent2 = theta + (PI / 2) - alpha;
-
-    std::cout << "Common Tangents: (" << cos(commonTangent1) * circle.radius + circle.center.x << ", "
-        << sin(commonTangent1) * circle.radius + circle.center.y << ") and ("
-        << cos(commonTangent2) * circle.radius + circle.center.x << ", "
-        << sin(commonTangent2) * circle.radius + circle.center.y << ")" << std::endl;
-
-    std::cout << "Direct Tangents: (" << cos(directTangent1) * circle.radius + circle.center.x << ", "
-        << sin(directTangent1) * circle.radius + circle.center.y << ") and ("
-        << cos(directTangent2) * circle.radius + circle.center.x << ", "
-        << sin(directTangent2) * circle.radius + circle.center.y << ")" << std::endl;
-        */
 }

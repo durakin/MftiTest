@@ -152,6 +152,7 @@
     <ClInclude Include="FriendlyCircle.h" />
     <ClInclude Include="GeometryUtils.h" />
     <ClInclude Include="MovingObject.h" />
+    <ClInclude Include="PixelDigits.h" />
     <ClInclude Include="Player.h" />
   </ItemGroup>
   <ItemGroup>
@@ -162,6 +163,7 @@
     <ClCompile Include="Game.cpp" />
     <ClCompile Include="GeometryUtils.cpp" />
     <ClCompile Include="MovingObject.cpp" />
+    <ClCompile Include="PixelDigits.cpp" />
     <ClCompile Include="Player.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

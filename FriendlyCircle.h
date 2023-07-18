@@ -13,4 +13,5 @@ public:
 	uint32_t color;
 	void draw() override;
 	bool collidesPlayer() override;
+	bool out_of_playzone() override;
 };

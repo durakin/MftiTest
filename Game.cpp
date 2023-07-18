@@ -5,6 +5,7 @@
 #include <vector>
 #include <algorithm>
 #include <type_traits>
+#include <random>
 
 #include "Engine.h"
 #include "DrawableObject.h"
@@ -16,6 +17,7 @@
 #include "FriendlyCircle.h"
 #include "Player.h"
 #include "DisplayUtils.h"
+#include "PixelDigits.h"
 
 //  is_key_pressed(int button_vk_code) - check if a key is pressed,
 //                                       use keycodes (VK_SPACE, VK_RIGHT, VK_LEFT, VK_UP, VK_DOWN, 'A', 'B')
@@ -51,31 +53,61 @@ void clear_inactive(std::vector<T> &objects) {
         }), objects.end());
 }
 
-void spawn_random_enemy(uint32_t color, int x, int y) {
+void set_random_speed_vector(float start_x, float start_y, float &speed_x, float &speed_y)
+{
+    float playzone_x = SCREEN_WIDTH / 2;
+    float playzone_y = SCREEN_HEIGHT / 2;
+
+    float speed_coeff = MIN_ENEMY_SPEED + static_cast <float> (rand()) / (static_cast <float> (RAND_MAX / (MAX_ENEMY_SPEED - MIN_ENEMY_SPEED)));
+    float y_coeff = MIN_ENEMY_SPEED_Y + static_cast <float> (rand()) / (static_cast <float> (RAND_MAX / (MAX_ENEMY_SPEED_Y - MIN_ENEMY_SPEED_Y)));
+
+    speed_x = (playzone_x - start_x) * speed_coeff;
+    speed_y = (playzone_y - start_y) * speed_coeff * y_coeff;
+}
+
+void set_random_spawnpoint(float& y)
+{
+    y = MIN_ENEMY_SPAWN_Y + static_cast <float> (rand()) / (static_cast <float> (RAND_MAX / (MAX_ENEMY_SPAWN_Y - MIN_ENEMY_SPAWN_Y)));
+}
+
+void set_random_enemy_size(float& size_x, float& size_y)
+{
+    size_x = MIN_ENEMY_SIZE + static_cast <float> (rand()) / (static_cast <float> (RAND_MAX / (MAX_ENEMY_SIZE - MIN_ENEMY_SIZE)));
+    size_y = size_x;
+}
+
+void set_random_friendly_radius(float& radius)
+{
+    radius = MIN_FRIENDLY_RADIUS + static_cast <float> (rand()) / (static_cast <float> (RAND_MAX / (MAX_FRIENDLY_RADIUS - MIN_FRIENDLY_RADIUS)));
+}
+
+void spawn_random_enemy(uint32_t color) {
     EnemyRectangular enemy;
-    enemy.x = x;
-    enemy.y = y;
     enemy.color = color;
-    enemy.side_x = 80;
-    enemy.side_y = 80;
-    enemy.speed_x = 100;
-    enemy.speed_y = 100;
+    enemy.x = SPAWN_X;
+
+    set_random_enemy_size(enemy.side_x, enemy.side_y);
+    set_random_spawnpoint(enemy.y);
+    set_random_speed_vector(enemy.x, enemy.y, enemy.speed_x, enemy.speed_y);
+
     enemy.active = true;
     enemies.push_back(enemy);
+    enemy_cooldown = ENEMY_CD;
 }
 
-void spawn_random_friend(uint32_t color, int x, int y) {
+void spawn_random_friend(uint32_t color) {
     FriendlyCircle friendly;
-    friendly.x = x;
-    friendly.y = y;
     friendly.color = color;
-    friendly.radius = 30;
-    friendly.speed_x = 100;
-    friendly.speed_y = 100;
+
+    friendly.x = SPAWN_X;
+    set_random_spawnpoint(friendly.y);
+    set_random_friendly_radius(friendly.radius);
+    set_random_speed_vector(friendly.x, friendly.y, friendly.speed_x, friendly.speed_y);
+
     friendly.active = true;
     friendlies.push_back(friendly);
+    friendly_cooldown = FRIENDLY_CD;
 }
-
 
 // initialize game data in this function
 void initialize()
@@ -95,17 +127,21 @@ void initialize()
     player.offset = 0;
     player.direction = 1;
     score = 0;
-    enemy_pool = 0;
-    spawn_random_enemy(1488, 100, 100);
-    spawn_random_enemy(14888841, 150, 150);
-    spawn_random_friend(84888841, 225, 225);
-    spawn_random_enemy(14888841, 350, 350);
+    hp = INITIAL_HP;
+    enemy_pool = ENEMY_POOL;
+    friendly_pool = FRIENDLY_POOL;
+    friendly_cooldown = 0;
+    enemy_cooldown = 0;
+    srand(time(0));
 }
 
 // this function is called to update game data,
 // dt - time elapsed since the previous update (in seconds)
 void act(float dt)
 {
+    friendly_cooldown -= dt;
+    enemy_cooldown -= dt;
+
     fill_screen(BACKSCREEN_COLOR);
     draw_playzone();
 
@@ -123,32 +159,49 @@ void act(float dt)
 
     for (EnemyRectangular& enemy : enemies) {
         enemy.move(dt);
-        if (enemy.collidesPlayer())
+        if (enemy.out_of_playzone())
         {
             enemy.active = false;
             enemy_pool++;
         }
+        if (enemy.collidesPlayer())
+        {
+            hp--;
+            enemy.active = false;
+            enemy_pool++;
+        }
         enemy.draw();
-
-        
     }   
 
-    if (enemy_pool >= 1)
+    if (enemy_pool >= 1 && enemy_cooldown <= 0)
     {
-        spawn_random_enemy(14888841, 150, 150);
+        spawn_random_enemy(14888841);
         enemy_pool--;
     }
 
     for (FriendlyCircle& friendly : friendlies) {
         friendly.move(dt);
+
+        if (friendly.out_of_playzone())
+        {
+            friendly.active = false;
+            friendly_pool++;
+        }
+
         if (friendly.collidesPlayer())
         {
             friendly.active = false;
             score++;
+            if (score % BONUS_HP_SCORE == 0)
+            {
+                hp++;
+            }
             friendly_pool++;
         }
-
+        
         friendly.draw();
+
+        draw_number(score, 600, 120, 4, 2, WHITE_COLOR);
 
         if (score >= 1000)
         {
@@ -157,9 +210,9 @@ void act(float dt)
         }
     }
 
-    if (friendly_pool >= 1)
+    if (friendly_pool >= 1 && friendly_cooldown <= 0)
     {
-        spawn_random_friend(84888841, 225, 225);
+        spawn_random_friend(84888841);
         friendly_pool--;
     }
 
@@ -173,6 +226,11 @@ void act(float dt)
     if (is_key_pressed(VK_RIGHT))
     {
         player.direction = -1;
+    }
+
+    if (hp <= 0)
+    {
+        schedule_quit_game();
     }
 }
 
