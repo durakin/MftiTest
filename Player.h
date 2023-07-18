@@ -21,3 +21,4 @@ extern int friendly_pool;
 extern float enemy_cooldown;
 extern float friendly_cooldown;
 extern int hp;
+extern bool space_pressed_lastframe;

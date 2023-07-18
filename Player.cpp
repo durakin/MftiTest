@@ -7,3 +7,4 @@ int friendly_pool;
 float enemy_cooldown;
 float friendly_cooldown;
 int hp;
+bool space_pressed_lastframe;

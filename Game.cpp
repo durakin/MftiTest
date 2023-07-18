@@ -131,6 +131,7 @@ void initialize()
     friendly_pool = FRIENDLY_POOL;
     friendly_cooldown = 0;
     enemy_cooldown = 0;
+    space_pressed_lastframe = false;
     srand(time(0));
 }
 
@@ -229,7 +230,14 @@ void act(float dt)
     }
     if (is_key_pressed(VK_SPACE))
     {
-        player.direction *= -1;
+        if (!space_pressed_lastframe)
+        {
+            player.direction *= -1;
+            space_pressed_lastframe = true;
+        }
+    }
+    else {
+        space_pressed_lastframe = false;
     }
 
     if (hp <= 0)
