@@ -1,50 +1,21 @@
-#include "Engine.h"
 #include <stdlib.h>
 #include <memory.h>
 #include <cmath>
 #include <math.h>
 #include <vector>
 #include <algorithm>
+#include <type_traits>
 
-#define WHITE_COLOR 0xffffffff
-#define PLAYZONE_COLOR 0x8032CD32
-#define BACKSCREEN_COLOR 0
-#define PLAYER_RADIUS 25
-#define PLAYZONE_RADIUS 150
-#define M_PI 3.14159265358979323846 
-#define PLAYER_SPEED 2
-
-
-class MovingRectangular
-{
-public:
-    float speed_x;
-    float speed_y;
-    float x;
-    float y;
-    float side_x;
-    float side_y;
-    uint32_t color;
-    bool deactivated;
-};
-
-struct Player_circle 
-{
-    float x;
-    float y;
-};
-
-struct Player
-{
-    Player_circle first;
-    Player_circle second;
-    float offset;
-    int direction;
-};
-
-std::vector<MovingRectangular> enemies;
-
-Player player;
+#include "Engine.h"
+#include "DrawableObject.h"
+#include "MovingObject.h"
+#include "CollidableObject.h"
+#include "Constants.h"
+#include "GeometryUtils.h"
+#include "EnemyRectangular.h"
+#include "FriendlyCircle.h"
+#include "Player.h"
+#include "DisplayUtils.h"
 
 //  is_key_pressed(int button_vk_code) - check if a key is pressed,
 //                                       use keycodes (VK_SPACE, VK_RIGHT, VK_LEFT, VK_UP, VK_DOWN, 'A', 'B')
@@ -54,74 +25,10 @@ Player player;
 //  clear_buffer() - set all pixels in buffer to 'black'
 //  is_window_active() - returns true if window is active
 //  schedule_quit_game() - quit game after act()
-void fill_backscreen() {
-    memset(buffer, BACKSCREEN_COLOR, SCREEN_HEIGHT * SCREEN_WIDTH * sizeof(uint32_t));
-}
 
-void draw_circle(int center_x, int center_y, int radius, uint32_t color) {
-    for (int y = center_y - radius; y <= center_y + radius; y++) 
-    {
-        for (int x = center_x - radius; x <= center_x + radius; x++)
-        {
-            int dx = x - center_x;
-            int dy = y - center_y;
-            int distance = dx * dx + dy * dy;
-            if (distance <= radius * radius) 
-            {
-                buffer[y][x] = color;
-            }
-        }
-    }
-}
+std::vector<EnemyRectangular> enemies;
+std::vector<FriendlyCircle> friendlies;
 
-void draw_sqare(int center_x, int center_y, int side_x, int side_y, uint32_t color) 
-{
-    for (int y = center_y - side_y / 2; y <= center_y + side_y / 2; y++) {
-        for (int x = center_x - side_x / 2; x <= center_x + side_x; x++) {
-            if ((x >= 0 && x < SCREEN_WIDTH && y >= 0 && y < SCREEN_HEIGHT)) {
-                buffer[y][x] = color;
-            }
-        }
-    }
-}
-
-bool checkOverlap(int R, int Xc, int Yc,
-    int X1, int Y1,
-    int X2, int Y2)
-{
-
-    // Find the nearest point on the
-    // rectangle to the center of
-    // the circle
-    int Xn = std::max(X1, std::min(Xc, X2));
-    int Yn = std::max(Y1, std::min(Yc, Y2));
-
-    // Find the distance between the
-    // nearest point and the center
-    // of the circle
-    // Distance between 2 points,
-    // (x1, y1) & (x2, y2) in
-    // 2D Euclidean space is
-    // ((x1-x2)**2 + (y1-y2)**2)**0.5
-    int Dx = Xn - Xc;
-    int Dy = Yn - Yc;
-    return (Dx * Dx + Dy * Dy) <= R * R;
-}
-
-bool is_enemy_collided(MovingRectangular object)
-{
-    return checkOverlap(PLAYER_RADIUS, player.first.x, player.first.y, object.x + object.side_x / 2, object.y + object.side_y /2,
-        object.x - object.side_x / 2, object.y - object.side_y / 2)
-        || checkOverlap(PLAYER_RADIUS, player.second.x, player.second.y, object.x + object.side_x / 2, object.y + object.side_y / 2,
-            object.x - object.side_x / 2, object.y - object.side_y / 2);
-}
-
-void move_enemy(float t, MovingRectangular* enemy)
-{
-    enemy->x += (t * enemy->speed_x);
-    enemy->y += (t * enemy->speed_y);
-    draw_sqare(enemy->x, enemy->y, enemy->side_x, enemy->side_y, enemy->color);
-}
 
 void move_player(float t, float& x1, float& y1, float& x2, float& y2) {
     x1 = PLAYZONE_RADIUS * std::cos(t) + SCREEN_WIDTH / 2;
@@ -136,18 +43,37 @@ void draw_playzone() {
     draw_circle(SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2, PLAYZONE_RADIUS, PLAYZONE_COLOR);
 }
 
+template <typename T>
+void clear_inactive(std::vector<T> &objects) {
+    static_assert(std::is_convertible_v<T&, DrawableObject&>);
+    objects.erase(std::remove_if(objects.begin(), objects.end(), [](const T& elem) {
+        return elem.active == false;
+        }), objects.end());
+}
 
 void spawn_random_enemy(uint32_t color, int x, int y) {
-    MovingRectangular enemy;
+    EnemyRectangular enemy;
     enemy.x = x;
     enemy.y = y;
     enemy.color = color;
-    enemy.side_x = 10;
-    enemy.side_y = 15;
+    enemy.side_x = 80;
+    enemy.side_y = 80;
     enemy.speed_x = 100;
     enemy.speed_y = 100;
-    enemy.deactivated = false;
+    enemy.active = true;
     enemies.push_back(enemy);
+}
+
+void spawn_random_friend(uint32_t color, int x, int y) {
+    FriendlyCircle friendly;
+    friendly.x = x;
+    friendly.y = y;
+    friendly.color = color;
+    friendly.radius = 30;
+    friendly.speed_x = 100;
+    friendly.speed_y = 100;
+    friendly.active = true;
+    friendlies.push_back(friendly);
 }
 
 
@@ -168,17 +94,19 @@ void initialize()
     player.second = second;
     player.offset = 0;
     player.direction = 1;
+    score = 0;
+    enemy_pool = 0;
     spawn_random_enemy(1488, 100, 100);
     spawn_random_enemy(14888841, 150, 150);
+    spawn_random_friend(84888841, 225, 225);
     spawn_random_enemy(14888841, 350, 350);
 }
-
 
 // this function is called to update game data,
 // dt - time elapsed since the previous update (in seconds)
 void act(float dt)
 {
-    fill_backscreen();
+    fill_screen(BACKSCREEN_COLOR);
     draw_playzone();
 
     if (is_key_pressed(VK_ESCAPE))
@@ -193,18 +121,50 @@ void act(float dt)
     }
     move_player(player.offset, player.first.x, player.first.y, player.second.x, player.second.y);
 
-    for (MovingRectangular& enemy: enemies) {
-        move_enemy(dt, &enemy);
-        if (is_enemy_collided(enemy))
+    for (EnemyRectangular& enemy : enemies) {
+        enemy.move(dt);
+        if (enemy.collidesPlayer())
         {
-            enemy.deactivated = true;
+            enemy.active = false;
+            enemy_pool++;
+        }
+        enemy.draw();
+
+        
+    }   
+
+    if (enemy_pool >= 1)
+    {
+        spawn_random_enemy(14888841, 150, 150);
+        enemy_pool--;
+    }
+
+    for (FriendlyCircle& friendly : friendlies) {
+        friendly.move(dt);
+        if (friendly.collidesPlayer())
+        {
+            friendly.active = false;
+            score++;
+            friendly_pool++;
+        }
+
+        friendly.draw();
+
+        if (score >= 1000)
+        {
+            schedule_quit_game();
+            return;
         }
     }
-    
-    enemies.erase(std::remove_if(enemies.begin(), enemies.end(), [](const MovingRectangular& elem) {
-        return elem.deactivated == true;
-        }), enemies.end());
 
+    if (friendly_pool >= 1)
+    {
+        spawn_random_friend(84888841, 225, 225);
+        friendly_pool--;
+    }
+
+    clear_inactive(enemies);
+    clear_inactive(friendlies);
 
     if (is_key_pressed(VK_LEFT)) 
     {

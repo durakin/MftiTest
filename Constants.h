@@ -1,0 +1,9 @@
+#pragma once
+
+#define WHITE_COLOR 0xffffffff
+#define PLAYZONE_COLOR 0x8032CD32
+#define BACKSCREEN_COLOR 0
+#define PLAYER_RADIUS 25
+#define PLAYZONE_RADIUS 150
+#define M_PI 3.14159265358979323846 
+#define PLAYER_SPEED 2

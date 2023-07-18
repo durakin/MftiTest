@@ -143,11 +143,26 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="CollidableObject.h" />
+    <ClInclude Include="Constants.h" />
+    <ClInclude Include="DisplayUtils.h" />
+    <ClInclude Include="DrawableObject.h" />
+    <ClInclude Include="EnemyRectangular.h" />
     <ClInclude Include="Engine.h" />
+    <ClInclude Include="FriendlyCircle.h" />
+    <ClInclude Include="GeometryUtils.h" />
+    <ClInclude Include="MovingObject.h" />
+    <ClInclude Include="Player.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="DisplayUtils.cpp" />
+    <ClCompile Include="EnemyRectangular.cpp" />
     <ClCompile Include="Engine.cpp" />
+    <ClCompile Include="FriendlyCircle.cpp" />
     <ClCompile Include="Game.cpp" />
+    <ClCompile Include="GeometryUtils.cpp" />
+    <ClCompile Include="MovingObject.cpp" />
+    <ClCompile Include="Player.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
