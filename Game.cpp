@@ -15,7 +15,6 @@
 #define PLAYER_SPEED 2
 
 
-
 class MovingRectangular
 {
 public:
@@ -85,10 +84,35 @@ void draw_sqare(int center_x, int center_y, int side_x, int side_y, uint32_t col
     }
 }
 
-bool is_collision(MovingRectangular* object)
+bool checkOverlap(int R, int Xc, int Yc,
+    int X1, int Y1,
+    int X2, int Y2)
 {
-    
-    return false;
+
+    // Find the nearest point on the
+    // rectangle to the center of
+    // the circle
+    int Xn = std::max(X1, std::min(Xc, X2));
+    int Yn = std::max(Y1, std::min(Yc, Y2));
+
+    // Find the distance between the
+    // nearest point and the center
+    // of the circle
+    // Distance between 2 points,
+    // (x1, y1) & (x2, y2) in
+    // 2D Euclidean space is
+    // ((x1-x2)**2 + (y1-y2)**2)**0.5
+    int Dx = Xn - Xc;
+    int Dy = Yn - Yc;
+    return (Dx * Dx + Dy * Dy) <= R * R;
+}
+
+bool is_enemy_collided(MovingRectangular object)
+{
+    return checkOverlap(PLAYER_RADIUS, player.first.x, player.first.y, object.x + object.side_x / 2, object.y + object.side_y /2,
+        object.x - object.side_x / 2, object.y - object.side_y / 2)
+        || checkOverlap(PLAYER_RADIUS, player.second.x, player.second.y, object.x + object.side_x / 2, object.y + object.side_y / 2,
+            object.x - object.side_x / 2, object.y - object.side_y / 2);
 }
 
 void move_enemy(float t, MovingRectangular* enemy)
@@ -110,8 +134,6 @@ void move_player(float t, int& x1, int& y1, int& x2, int& y2) {
 void draw_playzone() {
     draw_circle(SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2, PLAYZONE_RADIUS, PLAYZONE_COLOR);
 }
-
-
 
 
 void spawn_random_enemy(uint32_t color, int x, int y) {
@@ -171,6 +193,13 @@ void act(float dt)
 
     for (MovingRectangular& enemy: enemies) {
         move_enemy(dt, &enemy);
+    }
+
+    for (MovingRectangular& enemy : enemies) {
+        if (is_enemy_collided(enemy))
+        {
+            enemy.color = WHITE_COLOR;
+        }
     }
 
     if (is_key_pressed(VK_LEFT)) 
